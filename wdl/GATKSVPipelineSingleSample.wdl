@@ -964,20 +964,22 @@ workflow GATKSVPipelineSingleSample {
   call utils.RunQC as SampleFilterQC {
       input:
         name=batch,
-        qc_metrics=SampleFilterMetrics.out,
+        metrics=SampleFilterMetrics.metrics_file,
         qc_definitions = qc_definitions,
         sv_pipeline_base_docker=sv_pipeline_base_docker
   }
 
-  call SingleSampleFiltering.SampleQC {
+  call SingleSampleFiltering.SampleQC as FilterSample {
       input:
-
+        vcf=ResetBothsidesSupportFilter.out,
+        sample_filtering_qc_file=SampleFilterQC.out,
+        sv_pipeline_base_docker=sv_pipeline_base_docker,
   }
 
   call m08.Module08Annotation {
        input:
-        vcf = ResetBothsidesSupportFilter.out,
-        vcf_idx = ResetBothsidesSupportFilter.out_idx,
+        vcf = FilterSample.out,
+        vcf_idx = FilterSample.out_idx,
         prefix = batch,
         contig_list = primary_contigs_list,
         protein_coding_gtf = protein_coding_gtf,
